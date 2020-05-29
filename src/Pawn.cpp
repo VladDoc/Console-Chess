@@ -41,7 +41,7 @@ bool Pawn::ValidateMove(int x1, int y1,
 
     bool isFree = enemy.IsEmpty();
 
-    // Improves readability quire a bit
+    // Improves readability quite a bit
     int checkStep = this->IsWhite() ? 1 : -1;
 
     int enPassantCheck = this->IsWhite() ? 4 : 3;

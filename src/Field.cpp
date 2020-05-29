@@ -31,7 +31,7 @@ Figure& Field::get(int x, int y) const
     return *this->field_[y][x];
 }
 
-std::unique_ptr<Figure>&& Field::set(int x, int y, std::unique_ptr<Figure>&& f)
+std::unique_ptr<Figure> Field::set(int x, int y, std::unique_ptr<Figure>&& f)
 {
     this->field_[y][x].swap(f);
 
@@ -139,6 +139,7 @@ void Field::Init()
     }
 
     static bool testsRun;
+    // So calling Init() again won't cause assertion fail
     if(!testsRun) this->Tests();
     testsRun = true;
 }
@@ -149,16 +150,6 @@ void Field::Update(const UpdateData&)
         currentMove ? std::cout << "White King must defend himself\n" :
                       std::cout << "Black King must defend himself\n";
         check = false;
-    }
-
-    if(capturedWhite)
-    {
-        std::cout << capturedWhite << " white pieces are captured.\n";
-    }
-
-    if(capturedBlack)
-    {
-        std::cout << capturedBlack << " black pieces are captured.\n";
     }
 
     std::cout << "M to move\n"
@@ -239,33 +230,31 @@ void Field::Update(const UpdateData&)
                         UtilityBS::Pause();
                         return;
                     }
-                    std::cout << "Illegal Move: King Under Attack\n";
+                    std::cout << "Illegal Move: King is Under Attack\n";
                     this->swap(src.x, src.y, dst.x, dst.y);
                     UtilityBS::Pause();
                     checkMateCounter += 1;
                     continue;
                 } else if(this->KingInDanger(*blackKing)) {
                     dynamic_cast<King*>(blackKing)->setThreatened(true);
-                    UtilityBS::Pause();
                     this->check = true;
                 }
             } else {
                 if(this->KingInDanger(*blackKing)) {
                 dynamic_cast<King*>(blackKing)->setThreatened(true);
-                    if(CheckMate(*blackKing)) {
+                    if(CheckMate(*blackKing) && checkMateCounter == 3) {
                         std::cout << "Checkmate. Black won!\n";
                         this->done = true;
                         UtilityBS::Pause();
                         return;
                     }
-                    std::cout << "Illegal Move: King Under Attack\n";
+                    std::cout << "Illegal Move: King is Under Attack\n";
                     this->swap(src.x, src.y, dst.x, dst.y);
                     UtilityBS::Pause();
                     checkMateCounter += 1;
                     continue;
                 } else if(this->KingInDanger(*whiteKing)) {
                     dynamic_cast<King*>(whiteKing)->setThreatened(true);
-                    UtilityBS::Pause();
                     this->check = true;
                 }
             }
@@ -480,7 +469,7 @@ bool Field::KingInDanger(const Figure& king) const
     Vector2D<int> dst;
     king.GetCoords(dst.x, dst.y);
 
-    KingInDanger(color, dst);
+    return KingInDanger(color, dst);
 }
 
 

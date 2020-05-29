@@ -31,7 +31,7 @@ class Field : public GameObject
         virtual void Close() override;
 
         virtual Figure& get(int x, int y) const;
-        virtual std::unique_ptr<Figure>&& set(int x, int y, std::unique_ptr<Figure>&& f);
+        virtual std::unique_ptr<Figure> set(int x, int y, std::unique_ptr<Figure>&& f);
         virtual void swap(int x1, int y1, int x2, int y2);
 
         virtual void GetLastMove(Vector2D<int>& src, Vector2D<int>& dst) const;

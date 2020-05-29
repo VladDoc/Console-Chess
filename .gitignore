@@ -34,6 +34,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Dd]ata/
+[Bb]uild/
 
 # Compiled Object files
 *.slo
