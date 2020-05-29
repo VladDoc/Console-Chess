@@ -33,7 +33,7 @@ Pawn::~Pawn()
 }
 
 bool Pawn::ValidateMove(int x1, int y1,
-                        int x2, int y2, const Field& f)
+                        int x2, int y2, const Field& f) const
 {
     if(this->IsEmpty()) return false;
 
@@ -104,6 +104,7 @@ bool Pawn::ValidateMove(int x1, int y1,
 
 bool Pawn::Move(int x, int y, Field& f)
 {
+    if(x == this->x_ && y == this->y_) return false;
     if(ValidateMove(this->x_, this->y_, x, y, f))
     {
         f.get(x, y).SetEmpty();

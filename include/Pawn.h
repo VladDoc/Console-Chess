@@ -10,7 +10,7 @@ class Pawn : public Figure
         Pawn(int x, int y, bool col);
         virtual ~Pawn();
         virtual bool ValidateMove(int x1, int y1,
-                                  int x2, int y2, const Field& f) override;
+                                  int x2, int y2, const Field& f) const override;
         virtual bool Move(int x, int y, Field& f) override;
     protected:
 

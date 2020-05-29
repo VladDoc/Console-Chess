@@ -27,7 +27,7 @@ Queen::Queen(int x, int y, bool col)
 }
 
 bool Queen::ValidateMove(int x1, int y1,
-                         int x2, int y2, const Field& f)
+                         int x2, int y2, const Field& f) const
 {
     bool empty = f.get(x2, y2).IsEmpty();
     bool diff_color = f.get(x2, y2).GetColor() != this->GetColor();

@@ -25,7 +25,7 @@ class Figure
         virtual ~Figure();
         virtual bool Move(int x, int y, Field& f);
         virtual bool ValidateMove(int x1, int y1,
-                                  int x2, int y2, const Field& f) = 0;
+                                  int x2, int y2, const Field& f) const = 0;
         virtual void Draw(const UpdateData& data) const;
 
         // I've no idea why these are virtual
@@ -37,6 +37,7 @@ class Figure
         virtual void SetEmpty();
         virtual void SetCoords(int x, int y);
         virtual void GetCoords(int& x, int& y) const;
+        virtual bool GetFirstMove() const { return firstMove;}
         virtual const char* GetName() const;
 
         virtual void output(std::ostream& where) const;

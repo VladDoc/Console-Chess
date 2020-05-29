@@ -43,6 +43,7 @@ void Figure::SetCoords(int x, int y)
 
 bool Figure::Move(int x, int y, Field& f)
 {
+    if(x == this->x_ && y == this->y_) return false;
     if(ValidateMove(this->x_, this->y_, x, y, f))
     {
         f.get(x, y).SetEmpty();

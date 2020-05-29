@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "BoilerPlate.h"
 #include "Field.h"
 #include "UtilityBS.h"
@@ -20,7 +22,10 @@ class Game : public FrameWork
         field->Draw(data);
         field->Update(data);
 
-        if(field->GameOver()) this->done = true;
+        if(field->GameOver()) {
+            this->done = true;
+            std::cout << "See ya then\n";
+        }
 
         if(field->Restart()) {
             field->Close();

@@ -11,7 +11,7 @@ class Queen : public Figure
         Queen(int x, int y, bool col);
         virtual ~Queen();
         virtual bool ValidateMove(int x1, int y1,
-                                  int x2, int y2, const Field& f) override;
+                                  int x2, int y2, const Field& f) const override;
     protected:
 
     private:

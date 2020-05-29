@@ -33,18 +33,6 @@ Figure& Field::get(int x, int y) const
 
 std::unique_ptr<Figure>&& Field::set(int x, int y, std::unique_ptr<Figure>&& f)
 {
-    std::remove(whiteFigures.begin(), whiteFigures.end(),
-                 this->field_[y][x].get());
-    std::remove(blackFigures.begin(), blackFigures.end(),
-                 this->field_[y][x].get());
-
-    if(f->GetColor() == Color::WHITE) {
-        whiteFigures.push_back(f.get());
-    }
-    if(f->GetColor() == Color::BLACK) {
-        blackFigures.push_back(f.get());
-    }
-
     this->field_[y][x].swap(f);
 
     return std::move(f);
@@ -88,7 +76,6 @@ void Field::Init()
                     this->whiteKing = &this->get(j, i);
                 break;
             }
-            whiteFigures.push_back(&this->get(j, i));
         }
     }
     for(int i = 1; i < 2; ++i) {
@@ -98,7 +85,6 @@ void Field::Init()
         field_[i].reserve(8);
         for(int j = 0; j < 8; ++j) {
             field_[i].emplace_back(std::make_unique<Pawn>(Pawn{j, i, true}));
-            whiteFigures.push_back(&this->get(j, i));
         }
     }
 
@@ -119,7 +105,6 @@ void Field::Init()
         field_[i].reserve(8);
         for(int j = 0; j < 8; ++j) {
             field_[i].emplace_back(std::make_unique<Pawn>(Pawn{j, i, false}));
-            blackFigures.push_back(&this->get(j, i));
         }
     }
     for(int i = 7; i < 8; ++i) {
@@ -150,7 +135,6 @@ void Field::Init()
                     this->blackKing = &this->get(j, i);
                 break;
             }
-            blackFigures.push_back(&this->get(j, i));
         }
     }
 
@@ -160,20 +144,21 @@ void Field::Init()
 }
 void Field::Update(const UpdateData&)
 {
-    if(!currentMove) {
-        std::cout << "Move of black\n";
-    } else {
-        std::cout << "Move of white\n";
+    if(check) {
+        std::cout << "CHECK!\n";
+        currentMove ? std::cout << "White King must defend himself\n" :
+                      std::cout << "Black King must defend himself\n";
+        check = false;
     }
 
-    if(whiteFigures.size() < 16)
+    if(capturedWhite)
     {
-        std::cout << 16 - whiteFigures.size() << " white pieces are captured.\n";
+        std::cout << capturedWhite << " white pieces are captured.\n";
     }
 
-    if(blackFigures.size() < 16)
+    if(capturedBlack)
     {
-        std::cout << 16 - blackFigures.size() << " black pieces are captured.\n";
+        std::cout << capturedBlack << " black pieces are captured.\n";
     }
 
     std::cout << "M to move\n"
@@ -235,6 +220,10 @@ void Field::Update(const UpdateData&)
 
             Figure* enemy = &this->get(dst.x, dst.y);
 
+            bool wasntEmpty = !enemy->IsEmpty();
+            bool wasntSameColor = this->get(src.x, src.y).GetColor() !=
+                                  enemy->GetColor();
+
             if(!field_[src.y][src.x]->Move(dst.x, dst.y, *this)) {
                 std::cout << "Invalid Move\n";
                 UtilityBS::Pause();
@@ -242,46 +231,47 @@ void Field::Update(const UpdateData&)
             }
 
             if(currentMove) {
-                if(this->KingInDanger(whiteKing)) {
-                    if(checkMateCounter == 8) {
-                        std::cout << "Checkmate\n";
+                if(this->KingInDanger(*whiteKing)) {
+                    dynamic_cast<King*>(whiteKing)->setThreatened(true);
+                    if(CheckMate(*whiteKing)) {
+                        std::cout << "Checkmate. Black won!\n";
                         this->done = true;
                         UtilityBS::Pause();
                         return;
                     }
                     std::cout << "Illegal Move: King Under Attack\n";
+                    this->swap(src.x, src.y, dst.x, dst.y);
                     UtilityBS::Pause();
                     checkMateCounter += 1;
                     continue;
-                } else if(this->KingInDanger(blackKing)) {
-                    std::cout << "Check.\n";
+                } else if(this->KingInDanger(*blackKing)) {
+                    dynamic_cast<King*>(blackKing)->setThreatened(true);
                     UtilityBS::Pause();
-                    continue;
+                    this->check = true;
                 }
             } else {
-                if(this->KingInDanger(blackKing)) {
-                    if(checkMateCounter == 8) {
-                        std::cout << "Checkmate\n";
+                if(this->KingInDanger(*blackKing)) {
+                dynamic_cast<King*>(blackKing)->setThreatened(true);
+                    if(CheckMate(*blackKing)) {
+                        std::cout << "Checkmate. Black won!\n";
                         this->done = true;
                         UtilityBS::Pause();
                         return;
                     }
                     std::cout << "Illegal Move: King Under Attack\n";
+                    this->swap(src.x, src.y, dst.x, dst.y);
                     UtilityBS::Pause();
                     checkMateCounter += 1;
                     continue;
-                } else if(this->KingInDanger(whiteKing)) {
-                    std::cout << "Check.\n";
+                } else if(this->KingInDanger(*whiteKing)) {
+                    dynamic_cast<King*>(whiteKing)->setThreatened(true);
                     UtilityBS::Pause();
-                    continue;
+                    this->check = true;
                 }
             }
 
-
-            if(currentMove) {
-                std::remove(whiteFigures.begin(), whiteFigures.end(), enemy);
-            } else {
-                std::remove(blackFigures.begin(), blackFigures.end(), enemy);
+            if(wasntEmpty && wasntSameColor) {
+                currentMove ? ++capturedBlack : ++capturedWhite;
             }
 
             this->lastMoveSrc = src;
@@ -298,6 +288,8 @@ void Field::Update(const UpdateData&)
 
             if(!out) std::cout << "Failed to save.";
             else std::cout << "Saved.";
+
+            std::cin.ignore();
             UtilityBS::Pause();
 
             out.close();
@@ -311,6 +303,8 @@ void Field::Update(const UpdateData&)
 
             if(!in) std::cout << "Failed to load.";
             else std::cout << "Loaded.";
+
+            std::cin.ignore();
             UtilityBS::Pause();
 
             in.close();
@@ -331,7 +325,6 @@ void Field::Update(const UpdateData&)
                answer == "yea" ||
                answer == "yep" ||
                answer == "yeah") {
-                    std::cout << "See ya then\n";
                     this->done = true;
                     return;
             } else {
@@ -355,8 +348,6 @@ void Field::Draw(const UpdateData& data) const
 void Field::Close()
 {
     this->field_.clear();
-    this->blackFigures.clear();
-    this->whiteFigures.clear();
 }
 
 void Field::GetLastMove(Vector2D<int>& src, Vector2D<int>& dst) const
@@ -439,35 +430,57 @@ void Field::Tests()
     field_[3][3] = std::make_unique<King>(King{3, 3, false});
     field_[3][5] = std::make_unique<Queen>(Queen{5, 3, true});
 
-
-    auto& a = this->get(5,3);
-    this->whiteFigures.push_back(&this->get(5,3));
-
-    assert(whiteFigures.size() == 17);
-
-    assert(KingInDanger(&this->get(3, 3)) == true);
+    assert(KingInDanger(this->get(3, 3)) == true);
 
     this->get(3, 3).SetEmpty();
     this->get(5, 3).SetEmpty();
 }
 
-bool Field::KingInDanger(const Figure* king) const
+
+bool Field::CheckMate(const Figure& king) const
 {
-    auto& enemySoldiers = currentMove ? blackFigures : whiteFigures;
-
+    Color color = king.IsWhite() ? Color::BLACK : Color::WHITE;
     Vector2D<int> dst;
-    king->GetCoords(dst.x, dst.y);
+    king.GetCoords(dst.x, dst.y);
 
+    bool isAlive = true;
 
-    for(int i = 0; i < enemySoldiers.size(); ++i) {
-        auto& a = enemySoldiers[i];
-        Vector2D<int> aCoords;
-        a->GetCoords(aCoords.x, aCoords.y);
-        if(a->ValidateMove(aCoords.x, aCoords.y, dst.x, dst.y, *this))
-            return true;
+    for(int i = -1; dst.y + i < 8; ++i) {
+        for(int j = -1; dst.x + j < 8; ++j) {
+            if(j == 0 && i == 0) continue;
+            if(dst.x - j < 0 || dst.y - i < 0) continue;
+            if(king.ValidateMove(dst.x, dst.y, dst.x + j, dst.y + i, *this))
+              isAlive &= !KingInDanger(color, {dst.x + j, dst.y + i});
+        }
+    }
+
+    return !isAlive;
+}
+
+bool Field::KingInDanger(Color color, const Vector2D<int>& dst) const
+{
+    for(int i = 0; i < field_.size(); ++i) {
+        for(int j = 0; j < field_[0].size(); ++j) {
+            auto& a = field_[i][j];
+            if(a->GetColor() != color) continue;
+            Vector2D<int> aCoords;
+            a->GetCoords(aCoords.x, aCoords.y);
+            if(a->ValidateMove(aCoords.x, aCoords.y, dst.x, dst.y, *this))
+                return true;
+        }
     }
 
     return false;
+}
+
+bool Field::KingInDanger(const Figure& king) const
+{
+
+    Color color = king.IsWhite() ? Color::BLACK : Color::WHITE;
+    Vector2D<int> dst;
+    king.GetCoords(dst.x, dst.y);
+
+    KingInDanger(color, dst);
 }
 
 
@@ -486,14 +499,16 @@ void Field::output(std::ostream& where) const
         where << "\n  +---+---+---+---+---+---+---+---+\n";
     }
     where << "    a   b   c   d   e   f   g   h \n\n";
+    where << (currentMove ? "Move of white\n" : "Move of black\n");
+
+    where << "White pieces taken: " << this->capturedWhite << '\n';
+    where << "Black pieces taken: " << this->capturedBlack << '\n';
 }
 
 
 void Field::input(std::istream& from)
 {
     this->field_.clear();
-    this->whiteFigures.clear();
-    this->blackFigures.clear();
 
     std::string line;
     std::string piece;
@@ -502,6 +517,9 @@ void Field::input(std::istream& from)
     std::getline(from, line, '\n');
     char cbuf;
     int  ibuf;
+
+    int whiteC = 0;
+    int blackC = 0;
 
     this->field_.reserve(8);
     for(int i = 0; i < 8; ++i) {
@@ -517,11 +535,11 @@ void Field::input(std::istream& from)
              }
              field_[i].emplace_back(FigureFactory::create(piece.c_str(), j, i));
              if(field_[i][j]->IsWhite()) {
-                whiteFigures.push_back(field_[i][j].get());
+                ++whiteC;
                 if(piece[1] == 'K') whiteKing = field_[i][j].get();
              }
              if(field_[i][j]->IsBlack()) {
-                blackFigures.push_back(field_[i][j].get());
+                 ++blackC;
                 if(piece[1] == 'K') blackKing = field_[i][j].get();
              }
         }
@@ -529,4 +547,11 @@ void Field::input(std::istream& from)
         std::getline(from, line, '\n');
         std::getline(from, line, '\n');
     }
+    std::getline(from, line, '\n');
+    std::getline(from, line, '\n');
+    std::getline(from, line, '\n');
+
+    this->capturedWhite = 16 - whiteC;
+    this->capturedBlack = 16 - blackC;
 }
+

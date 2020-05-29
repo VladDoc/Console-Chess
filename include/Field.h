@@ -9,6 +9,7 @@
 #include "Vector2D.h"
 
 class Figure;
+enum class Color : uint8_t;
 
 enum class Direction : uint8_t
 {
@@ -39,7 +40,8 @@ class Field : public GameObject
                                  const Vector2D<int>& dst) const;
         virtual bool GameOver() { return this->done; }
         virtual bool Restart() { return this->restart;}
-        virtual bool KingInDanger(const Figure* king) const;
+        virtual bool KingInDanger(const Figure& king) const;
+        virtual bool CheckMate(const Figure& king) const;
 
         virtual void output(std::ostream& where) const;
         virtual void input(std::istream& from);
@@ -52,15 +54,21 @@ class Field : public GameObject
         Vector2D<int> lastMoveSrc;
         Vector2D<int> lastMoveDst;
 
-        std::deque<Figure*> whiteFigures;
-        std::deque<Figure*> blackFigures;
-
         Figure* whiteKing;
         Figure* blackKing;
 
         int checkMateCounter = 0;
+
+        int capturedWhite = 0;
+        int capturedBlack = 0;
+
+        bool check = false;
+
         bool done = false;
         bool restart = false;
+
+        virtual bool KingInDanger(Color color, const Vector2D<int>& dst) const;
+
     private:
         void Tests();
 };
