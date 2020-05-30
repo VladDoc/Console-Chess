@@ -1,15 +1,15 @@
 # Console Chess
 
-Console Chess game written in a few days.
+Console Chess game written in a few days.<br>
 ![Screenshot](https://i.ibb.co/pwFmND1/Chess.png "screen shot")
 
-Can be compiled with any C++14 and up compliant compiler
+Can be compiled with any `C++14` and up compliant compiler
 
-## Cloning project
+### Cloning project
  - Write the code below into your terminal or console:
- ```bash
- git clone https://github.com/VladDoc/Console-Chess 
- ```
+   ```bash
+      git clone https://github.com/VladDoc/Console-Chess 
+   ```
  - Compile 
    ```bash
       cd build
@@ -21,6 +21,6 @@ Can be compiled with any C++14 and up compliant compiler
    ./chess
    ```
   
-  # Editing project
+  ## Editing project
   - Create new branch with ```git checkout -b new_feature```, edit files and push them into repo
-  - Editings in master will be removed
+  - Edits in master will be removed
