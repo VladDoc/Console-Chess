@@ -3,6 +3,7 @@
 #include "BoilerPlate.h"
 #include "Field.h"
 #include "UtilityBS.h"
+#include "StockFish.h"
 
 class Game : public FrameWork
 {
@@ -12,6 +13,9 @@ class Game : public FrameWork
 
     virtual void Init() override
     {
+        StockFish::Init();
+
+
         field = std::make_unique<Field>();
         field->Init();
     }
@@ -37,11 +41,12 @@ class Game : public FrameWork
     virtual void Close() override
     {
         field->Close();
+        StockFish::Close();
     }
 };
 
 
-int main()
+int main(int argc, char** argv)
 {
     Game game;
     return FrameWork::run(game);

@@ -48,6 +48,7 @@ bool King::Move(int x, int y, Field& f)
 {
     if(x == this->x_ && y == this->y_) return false;
 
+    // Check for castling
     bool col = this->IsWhite();
     const char* rook = col ? "WR" : "BR";
 

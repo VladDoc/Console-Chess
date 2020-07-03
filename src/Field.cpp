@@ -16,6 +16,7 @@
 #include "King.h"
 #include "UtilityBS.h"
 #include "FigureFactory.h"
+#include "StockFish.h"
 
 Field::Field()
 {
@@ -138,10 +139,12 @@ void Field::Init()
         }
     }
 
-    static bool testsRun;
-    // So calling Init() again won't cause assertion fail
-    if(!testsRun) this->Tests();
-    testsRun = true;
+    this->SuggestAI();
+
+    static bool testsRan;
+    // So calling Init() again won't cause an assertion fail
+    if(!testsRan) this->Tests();
+    testsRan = true;
 }
 void Field::Update(const UpdateData&)
 {
@@ -159,14 +162,16 @@ void Field::Update(const UpdateData&)
               << "RM to restart this move\n"
               << "Q to call it quits\n";
     do {
-        std::string input;
+        std::string input_;
 
         std::cout << "> ";
-        std::getline(std::cin, input, '\n');
 
-        if(input.empty()) continue;
+        std::cin >> input_;
 
-        std::istringstream iss(input);
+
+        if(input_.empty()) continue;
+
+        std::istringstream iss(input_);
 
         using is_str_it = std::istream_iterator<std::string>;
 
@@ -183,30 +188,46 @@ void Field::Update(const UpdateData&)
         if(parsed[0].compare("m") == 0) {
             std::string str;
 
-            std::cout << "src: ";
-            std::getline(std::cin, str, '\n');
-            Vector2D<int> src = UtilityBS::ChessStringToCoods(str);
-            if(src.x < 0) {
-                std::cout << "Input string must be in such format:\n"
-                          << "E2 or e2\n";
-                UtilityBS::Pause();
-                continue;
-            }
+            Vector2D<int> src;
+            Vector2D<int> dst;
 
-            if(field_[src.y][src.x]->IsEmpty() ||
-               field_[src.y][src.x]->IsWhite() != currentMove) {
-                std::cout << "Illegal Piece.\n";
-                UtilityBS::Pause();
-                continue;
-            }
-            std::cout << "dst: ";
-            std::getline(std::cin, str, '\n');
-            Vector2D<int> dst = UtilityBS::ChessStringToCoods(str);
-            if(dst.x < 0) {
-                std::cout << "Input string must be in such format:\n"
-                          << "E2 or e2\n";
-                UtilityBS::Pause();
-                continue;
+            if(!againstAI || !currentMove) {
+                std::cout << "src: ";
+                std::cin >> str;
+
+                src = UtilityBS::ChessStringToCoods(str);
+                if(src.x < 0) {
+                    std::cout << "Input string must be in such format:\n"
+                              << "E2 or e2\n";
+                    UtilityBS::Pause();
+                    continue;
+                }
+
+                if(field_[src.y][src.x]->IsEmpty() ||
+                   field_[src.y][src.x]->IsWhite() != currentMove) {
+                    std::cout << "Illegal Piece.\n";
+                    UtilityBS::Pause();
+                    continue;
+                }
+                std::cout << "dst: ";
+                std::cin >> str;
+
+                dst = UtilityBS::ChessStringToCoods(str);
+                if(dst.x < 0) {
+                    std::cout << "Input string must be in such format:\n"
+                              << "E2 or e2\n";
+                    UtilityBS::Pause();
+                    continue;
+                }
+            } else {
+                Move move = StockFish::GenMove(this->moves);
+                if(move.IsInvalid()) {
+                    std::cout << "Error: Could not generate a move\n";
+                    UtilityBS::Pause();
+                } else {
+                    src = move.from;
+                    dst = move.to;
+                }
             }
 
             Figure* enemy = &this->get(dst.x, dst.y);
@@ -263,11 +284,24 @@ void Field::Update(const UpdateData&)
                 currentMove ? ++capturedBlack : ++capturedWhite;
             }
 
-            this->lastMoveSrc = src;
-            this->lastMoveDst = dst;
+            char promote = '\0';
+            // In most cases dynamic cast wont be executed
+            if(dst.y == 7 || dst.y == 0 &&
+               dynamic_cast<Pawn*>(&this->get(dst.x, dst.y)) != nullptr) {
+                promote = this->Promote(dst.x, dst.y);
+            }
+
+
+            this->lastMove.from = src;
+            this->lastMove.to = dst;
+            this->lastMove.promotion = promote;
+
+            this->moves.push_back(lastMove);
+
             currentMove = !currentMove;
             checkMateCounter = 0;
-            } else if(parsed[0].compare("s") == 0) {
+
+        } else if(parsed[0].compare("s") == 0) {
             std::string path;
 
             std::cout << "Input filename: ", std::cin >> path;
@@ -275,8 +309,8 @@ void Field::Update(const UpdateData&)
 
             this->output(out);
 
-            if(!out) std::cout << "Failed to save.";
-            else std::cout << "Saved.";
+            if(!out) std::cout << "Failed to save.\n";
+            else std::cout << "Saved.\n";
 
             std::cin.ignore();
             UtilityBS::Pause();
@@ -288,10 +322,12 @@ void Field::Update(const UpdateData&)
             std::cout << "Input filename: ", std::cin >> path;
             std::ifstream in(path.c_str());
 
-            this->input(in);
+            bool check = this->input(in);
 
-            if(!in) std::cout << "Failed to load.";
-            else std::cout << "Loaded.";
+            if(!in.good() && !check) std::cout << "Failed to load.\n";
+            else std::cout << "Loaded.\n";
+
+            this->SuggestAI();
 
             std::cin.ignore();
             UtilityBS::Pause();
@@ -339,10 +375,9 @@ void Field::Close()
     this->field_.clear();
 }
 
-void Field::GetLastMove(Vector2D<int>& src, Vector2D<int>& dst) const
+const Move& Field::GetLastMove() const
 {
-    src = lastMoveSrc;
-    dst = lastMoveDst;
+    return this->lastMove;
 }
 
 bool Field::IsPathClear(const Vector2D<int>& src,
@@ -492,10 +527,17 @@ void Field::output(std::ostream& where) const
 
     where << "White pieces taken: " << this->capturedWhite << '\n';
     where << "Black pieces taken: " << this->capturedBlack << '\n';
+
+    where << "All moves:\n";
+
+    for(auto& a : this->moves) {
+        where << a.to_string();
+    }
+    where << "\n";
 }
 
 
-void Field::input(std::istream& from)
+bool Field::input(std::istream& from)
 {
     this->field_.clear();
 
@@ -536,11 +578,78 @@ void Field::input(std::istream& from)
         std::getline(from, line, '\n');
         std::getline(from, line, '\n');
     }
+
     std::getline(from, line, '\n');
+    std::getline(from, line, '\n');
+    std::getline(from, line, '\n');
+
+    if(line == "Move of white") {
+        this->currentMove = true;
+    }
+
+    if(line == "Move of black") {
+        this->currentMove = false;
+    }
+
     std::getline(from, line, '\n');
     std::getline(from, line, '\n');
 
     this->capturedWhite = 16 - whiteC;
     this->capturedBlack = 16 - blackC;
+
+    std::getline(from, line, '\n');
+    this->moves.clear();
+
+    if(whiteC == 0 || blackC == 0 || !from.good()) return false;
+
+    while(!from.eof() && from >> line) moves.emplace_back(line);
+
+    return true;
 }
 
+char Field::Promote(int x, int y)
+{
+    bool col = this->get(x, y).IsWhite();
+    char input;
+    std::string res = col ? "W" : "B";
+    do {
+        std::cout << "Pawn gets promoted!\n"
+                  << "Choose a piece(R, N, B, Q, K):\n";
+        std::cin >> input;
+
+        res += input;
+
+        std::unique_ptr<Figure> newF =
+            FigureFactory::create(res.c_str(), x, y);
+
+        if(newF->IsEmpty() || newF->GetName()[1] == 'P') {
+            std::cout << "You must have misspelled. Try again\n";
+            continue;
+        }
+
+        newF = this->set(x, y, std::move(newF));
+        break;
+    } while(true);
+
+    return std::tolower(input);
+}
+
+
+void Field::SuggestAI()
+{
+    std::cout << "Would you like to play with an AI(y, n)?" << std::endl;
+    std::string answer;
+
+    std::cin >> answer;
+
+    if(answer == "y"   ||
+       answer == "yes" ||
+       answer == "yez" ||
+       answer == "yea" ||
+       answer == "yep" ||
+       answer == "yeah") {
+        this->againstAI = true;
+    } else {
+        this->againstAI = false;
+    }
+}

@@ -5,6 +5,11 @@
 #include <cstring>
 
 #include "FigureFactory.h"
+#include "Move.h"
+
+#ifndef MOVE_H_INCLUDED
+#error "Kakogo"
+#endif // MOVE_H_INCLUDED
 
 Pawn::Pawn()
 {
@@ -66,10 +71,11 @@ bool Pawn::ValidateMove(int x1, int y1,
 
                 const char* enName = enPassant->GetName();
 
-                Vector2D<int> src;
-                Vector2D<int> dst;
+                // somehow I got a collision hence this ugly 'struct' hack
+                struct Move move = f.GetLastMove();
 
-                f.GetLastMove(src, dst);
+                Vector2D<int>& src = move.from;
+                Vector2D<int>& dst = move.to;
 
                 src = dst - src;
 
@@ -100,44 +106,4 @@ bool Pawn::ValidateMove(int x1, int y1,
 
     }
     return false;
-}
-
-bool Pawn::Move(int x, int y, Field& f)
-{
-    if(x == this->x_ && y == this->y_) return false;
-    if(ValidateMove(this->x_, this->y_, x, y, f))
-    {
-        f.get(x, y).SetEmpty();
-        f.swap(this->x_, this->y_, x, y);
-
-        this->firstMove = false;
-
-        if(this->y_ == 7 || this->y_ == 0)
-        {
-            bool col = this->IsWhite();
-            char input;
-            std::string res = col ? "W" : "B";
-            do {
-                std::cout << "Pawn gets promoted!\n"
-                          << "Choose a piece(R, N, B, Q, K):\n";
-                std::cin >> input;
-
-                res += input;
-
-                std::unique_ptr<Figure> newF =
-                    FigureFactory::create(res.c_str(), this->x_, this->y_);
-                if(newF->IsEmpty() || newF->GetName()[1] == 'P') {
-                    std::cout << "You must have misspelled. Try again\n";
-                    continue;
-                }
-
-                newF = f.set(this->x_, this->y_, std::move(newF));
-                break;
-            } while(true);
-        }
-
-        return true;
-    } else {
-        return false;
-    }
 }

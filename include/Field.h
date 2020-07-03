@@ -7,17 +7,10 @@
 
 #include "GameObject.h"
 #include "Vector2D.h"
+#include "Move.h"
 
 class Figure;
 enum class Color : uint8_t;
-
-enum class Direction : uint8_t
-{
-    HORISONTAL,
-    VERTICAL,
-    DIAGONAL,
-    COUNT
-};
 
 
 class Field : public GameObject
@@ -34,7 +27,7 @@ class Field : public GameObject
         virtual std::unique_ptr<Figure> set(int x, int y, std::unique_ptr<Figure>&& f);
         virtual void swap(int x1, int y1, int x2, int y2);
 
-        virtual void GetLastMove(Vector2D<int>& src, Vector2D<int>& dst) const;
+        virtual const Move& GetLastMove() const final;
 
         virtual bool IsPathClear(const Vector2D<int>& src,
                                  const Vector2D<int>& dst) const;
@@ -44,18 +37,19 @@ class Field : public GameObject
         virtual bool CheckMate(const Figure& king) const;
 
         virtual void output(std::ostream& where) const;
-        virtual void input(std::istream& from);
+        virtual bool input(std::istream& from);
 
     protected:
         std::vector<std::vector<std::unique_ptr<Figure>>> field_; // Lengthy ain't it?
 
         bool currentMove = false;
 
-        Vector2D<int> lastMoveSrc;
-        Vector2D<int> lastMoveDst;
+        Move lastMove;
 
         Figure* whiteKing;
         Figure* blackKing;
+
+        std::vector<Move> moves;
 
         int checkMateCounter = 0;
 
@@ -67,7 +61,13 @@ class Field : public GameObject
         bool done = false;
         bool restart = false;
 
+        bool againstAI = false;
+
         virtual bool KingInDanger(Color color, const Vector2D<int>& dst) const;
+
+        char Promote(int x, int y);
+
+        void SuggestAI();
 
     private:
         void Tests();
