@@ -17,8 +17,6 @@ static int charToInt(char val, std::string dict, int def = -1)
 
 static const std::string letters = "abcdefgh";
 
-static const std::string numbers = "12345678";
-
 static const std::string numbersRev = "87654321";
 
 std::string Move::to_string() const

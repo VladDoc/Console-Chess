@@ -34,15 +34,17 @@ static TinyProcessLib::Process stockfish{
 
             std::string input(bytes);
 
-            if(input.find("bestmove") != std::string::npos) {
-                std::stringstream moveData(input);
+            size_t data_start = input.find("bestmove");
+
+            if(data_start != std::string::npos) {
+                std::stringstream moveData(input.substr(data_start));
                 std::string move;
 
                 // First string will be 'bestmove' which I dont care about
                 moveData >> move;
 
                 #ifdef DEBUG
-                out << "\n<DEBUG>\n";
+                out << "\n<ReadStdout>\n";
                 out << move << " ";
                 #endif // DEBUG
 
@@ -59,11 +61,17 @@ static TinyProcessLib::Process stockfish{
                     lastMove.from_string(move);
                     #ifdef DEBUG
                     out << lastMove.to_string() << " ";
+                    out << lastMove.from.x << " "
+                        << lastMove.from.y << " "
+                        << lastMove.to.x << " "
+                        << lastMove.to.y << " "
+                        << lastMove.promotion << " ";
+
                     #endif // DEBUG
                     moveRead = true;
                 }
                 #ifdef DEBUG
-                out << "\n</DEBUG>\n";
+                out << "\n</ReadStdout>\n";
                 #endif // DEBUG
             }
 
@@ -127,9 +135,14 @@ Move StockFish::GenMove(const std::vector<Move>& moves)
 
         if(moveRead) {
             #ifdef DEBUG
-            out << "\n<DEBUG>\n";
+            out << "\n<GenMove>\n";
             out << lastMove.to_string();
-            out << "\n</DEBUG>\n";
+            out << lastMove.from.x << " "
+                << lastMove.from.y << " "
+                << lastMove.to.x << " "
+                << lastMove.to.y << " "
+                << lastMove.promotion << " ";
+            out << "\n</GenMove>\n";
             #endif // DEBUG
             moveRead = false;
             return lastMove;

@@ -389,7 +389,8 @@ bool Field::IsPathClear(const Vector2D<int>& src,
 
     // if aspect ratio isn't 1:0, 1:1 or 0:1
     // Then it must be an illegal move
-    if(dist.x != 0 && dist.y != 0 && (dist.x % dist.y != 0)) return false;
+    if(dist.x != 0 && dist.y != 0 &&
+       !(std::abs(dist.x) == std::abs(dist.y))) return false;
 
     Vector2D<int> counter = src;
     Vector2D<int> step;
@@ -458,6 +459,19 @@ void Field::Tests()
 
     this->get(3, 3).SetEmpty();
     this->get(5, 3).SetEmpty();
+
+
+    Move move;
+
+    move.from_string("e8g8");
+
+    assert(move.from.x == 4);
+    assert(move.from.y == 0);
+
+    assert(move.to.x == 6);
+    assert(move.to.y == 0);
+
+    assert(move.promotion == '\0');
 }
 
 
