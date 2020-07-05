@@ -230,11 +230,21 @@ void Field::Update(const UpdateData&)
                 }
             }
 
+            Figure* piece = &this->get(src.x, src.y);
             Figure* enemy = &this->get(dst.x, dst.y);
+
+
 
             bool wasntEmpty = !enemy->IsEmpty();
             bool wasntSameColor = this->get(src.x, src.y).GetColor() !=
                                   enemy->GetColor();
+
+
+            // In most cases dynamic cast won't be executed
+            bool promotionFlag = (dst.y == 0 || dst.y == 7 &&
+                                  enemy->IsEmpty() &&
+                                  dynamic_cast<Pawn*>(piece) != nullptr);
+
 
             if(!field_[src.y][src.x]->Move(dst.x, dst.y, *this)) {
                 std::cout << "Invalid Move\n";
@@ -285,9 +295,8 @@ void Field::Update(const UpdateData&)
             }
 
             char promote = '\0';
-            // In most cases dynamic cast wont be executed
-            if(dst.y == 7 || dst.y == 0 &&
-               dynamic_cast<Pawn*>(&this->get(dst.x, dst.y)) != nullptr) {
+
+            if(promotionFlag) {
                 promote = this->Promote(dst.x, dst.y);
             }
 

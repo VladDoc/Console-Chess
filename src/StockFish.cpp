@@ -9,6 +9,7 @@
 
 #include <mutex>
 #include <condition_variable>
+#include <atomic>
 
 #ifdef DEBUG
 static int outCount = 0;
@@ -23,7 +24,7 @@ static std::mutex moveMtx;
 
 static Move lastMove;
 
-static bool moveRead = false;
+static std::atomic<bool> moveRead{false};
 
 static bool checkMate = false;
 
