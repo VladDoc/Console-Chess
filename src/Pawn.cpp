@@ -67,7 +67,7 @@ bool Pawn::ValidateMove(int x1, int y1,
 
                 Figure* enPassant = &f.get(x1+1, y1);
                 if(enPassant->IsEmpty()) {
-                    enPassant = &f.get(x1-1, y1);
+                   enPassant = &f.get(x1-1, y1);
                     if(enPassant->IsEmpty()) return false;
                 }
 

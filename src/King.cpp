@@ -53,17 +53,17 @@ bool King::Move(int x, int y, Field& f)
     const char* rook = col ? "WR" : "BR";
 
     int rookCoordX = -1;
-
     if(x == 6) rookCoordX = 7;
     if(x == 1) rookCoordX = 0;
 
     Vector2D<int> oldCoords{this->x_, this->y_};
     Vector2D<int> dist{x - this->x_, y - this->y_};
 
-    if(std::strcmp(f.get(rookCoordX, y).GetName(), rook) == 0 &&
-       !f.get(rookCoordX, y).IsEmpty() &&  this->firstMove &&
-        f.get(x, y).GetFirstMove() && !this->wasThreatened &&
-        f.IsPathClear(oldCoords, {x, y}) && rookCoordX != -1)
+    if(rookCoordX != -1 &&
+       std::strcmp(f.get(rookCoordX, y).GetName(), rook) == 0 &&
+      !f.get(rookCoordX, y).IsEmpty() &&  this->firstMove &&
+       f.get(x, y).GetFirstMove() && !this->wasThreatened &&
+       f.IsPathClear(oldCoords, {x, y}))
     {
         // You thought this is it?
         // No, now you've got to check that the king won't get under attack
