@@ -58,7 +58,9 @@ bool Pawn::ValidateMove(int x1, int y1,
 
             if(y2 == y1 + checkStep) return true;
 
-            if(this->firstMove && (y2 == y1 + checkStep * 2)) return true;
+            if(this->firstMove && (y2 == y1 + checkStep * 2) &&
+               f.get(x1, y1 + checkStep).IsEmpty()) return true;
+
         } else {
             if(enPassantCheck == y1 &&
                (enPassantCheck + checkStep) == y2 && std::abs(x2 - x1) == 1) {

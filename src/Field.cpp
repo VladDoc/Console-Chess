@@ -241,7 +241,7 @@ void Field::Update(const UpdateData&)
 
 
             // In most cases dynamic cast won't be executed
-            bool promotionFlag = (dst.y == 0 || dst.y == 7 &&
+            bool promotionFlag = ((dst.y == 0 || dst.y == 7) &&
                                   enemy->IsEmpty() &&
                                   dynamic_cast<Pawn*>(piece) != nullptr);
 
@@ -331,9 +331,9 @@ void Field::Update(const UpdateData&)
             std::cout << "Input filename: ", std::cin >> path;
             std::ifstream in(path.c_str());
 
-            bool check = this->input(in);
+            bool success = this->input(in);
 
-            if(!in.good() && !check) std::cout << "Failed to load.\n";
+            if(!in.good() && !success) std::cout << "Failed to load.\n";
             else std::cout << "Loaded.\n";
 
             this->SuggestAI();
@@ -506,8 +506,8 @@ bool Field::CheckMate(const Figure& king) const
 
 bool Field::KingInDanger(Color color, const Vector2D<int>& dst) const
 {
-    for(int i = 0; i < field_.size(); ++i) {
-        for(int j = 0; j < field_[0].size(); ++j) {
+    for(size_t i = 0; i < field_.size(); ++i) {
+        for(size_t j = 0; j < field_[0].size(); ++j) {
             auto& a = field_[i][j];
             if(a->GetColor() != color) continue;
             Vector2D<int> aCoords;
@@ -633,14 +633,14 @@ bool Field::input(std::istream& from)
 char Field::Promote(int x, int y)
 {
     bool col = this->get(x, y).IsWhite();
-    char input;
+    char input_;
     std::string res = col ? "W" : "B";
     do {
         std::cout << "Pawn gets promoted!\n"
                   << "Choose a piece(R, N, B, Q, K):\n";
-        std::cin >> input;
+        std::cin >> input_;
 
-        res += input;
+        res += input_;
 
         std::unique_ptr<Figure> newF =
             FigureFactory::create(res.c_str(), x, y);
@@ -654,7 +654,7 @@ char Field::Promote(int x, int y)
         break;
     } while(true);
 
-    return std::tolower(input);
+    return std::tolower(input_);
 }
 
 
