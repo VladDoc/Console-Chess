@@ -109,9 +109,7 @@ void Field::Init()
         }
     }
     for(int i = 7; i < 8; ++i) {
-        field_.emplace_back(
-                    std::vector<std::unique_ptr<Figure>>{}
-                );
+        field_.emplace_back(std::vector<std::unique_ptr<Figure>>{});
         field_[i].reserve(8);
         for(int j = 0; j < 8; ++j) {
             switch(j)
@@ -119,22 +117,22 @@ void Field::Init()
                 case 0:
                 case 7:
                     field_[i].emplace_back(std::make_unique<Rook>(Rook{j, i, false}));
-                break;
+                    break;
                 case 1:
                 case 6:
                     field_[i].emplace_back(std::make_unique<Knight>(Knight{j, i, false}));
-                break;
+                    break;
                 case 2:
                 case 5:
                     field_[i].emplace_back(std::make_unique<Bishop>(Bishop{j, i, false}));
-                break;
+                    break;
                 case 3:
                     field_[i].emplace_back(std::make_unique<Queen>(Queen{j, i, false}));
-                break;
+                    break;
                 case 4:
                     field_[i].emplace_back(std::make_unique<King>(King{j, i, false}));
                     this->blackKing = &this->get(j, i);
-                break;
+                    break;
             }
         }
     }
@@ -143,7 +141,9 @@ void Field::Init()
 
     static bool testsRan;
     // So calling Init() again won't cause an assertion fail
-    if(!testsRan) this->Tests();
+    if(!testsRan) {
+        this->Tests();
+    }
     testsRan = true;
 }
 void Field::Update(const UpdateData&)

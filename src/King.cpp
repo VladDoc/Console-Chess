@@ -38,33 +38,41 @@ bool King::ValidateMove(int x1, int y1,
     diff.x = std::abs(x2 - x1);
     diff.y = std::abs(y2 - y1);
 
-    if((empty || diff_color) && (diff.x <= 1 && diff.y <= 1)) {
-        if(f.IsPathClear({x1, y1}, {x2, y2})) return true;
+    if(((empty || diff_color) && (diff.x <= 1 && diff.y <= 1)) && f.IsPathClear({x1, y1}, {x2, y2})) {
+            return true;
     }
     return false;
 }
 
 bool King::Move(int x, int y, Field& f)
 {
-    if(x == this->x_ && y == this->y_) return false;
+    if(x == this->x_ && y == this->y_) {
+        return false;
+    }
 
     // Check for castling
     bool col = this->IsWhite();
     const char* rook = col ? "WR" : "BR";
 
     int rookCoordX = -1;
-    if(x == 6) rookCoordX = 7;
-    if(x == 1) rookCoordX = 0;
+    if(x == 6) 
+    {
+        rookCoordX = 7;
+    }
+    if(x == 1) {
+        rookCoordX = 0;
+    }
 
     Vector2D<int> oldCoords{this->x_, this->y_};
     Vector2D<int> dist{x - this->x_, y - this->y_};
 
-    if(rookCoordX != -1 &&
-       std::strcmp(f.get(rookCoordX, y).GetName(), rook) == 0 &&
-      !f.get(rookCoordX, y).IsEmpty() &&  this->firstMove &&
-       f.get(x, y).GetFirstMove() && !this->wasThreatened &&
-       f.IsPathClear(oldCoords, {x, y}))
-    {
+    if(
+        rookCoordX != -1 
+        && std::strcmp(f.get(rookCoordX, y).GetName(), rook) == 0 
+        && !f.get(rookCoordX, y).IsEmpty() &&  this->firstMove 
+        && f.get(x, y).GetFirstMove() && !this->wasThreatened 
+        && f.IsPathClear(oldCoords, {x, y})
+    ) {
         // You thought this is it?
         // No, now you've got to check that the king won't get under attack
         // on the cells that he's passing through.
@@ -84,7 +92,6 @@ bool King::Move(int x, int y, Field& f)
 
         f.swap(this->x_, this->y_, oldCoords.x, oldCoords.y);
         std::cout << "Castling failed. King would have been threatened.\n";
-        return false;
     }
 
     if(ValidateMove(this->x_, this->y_, x, y, f))
@@ -95,8 +102,8 @@ bool King::Move(int x, int y, Field& f)
         this->firstMove = false;
 
         return true;
-    } else {
-        return false;
     }
+
+    return false;
 }
 

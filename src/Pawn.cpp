@@ -56,10 +56,17 @@ bool Pawn::ValidateMove(int x1, int y1,
     if(isFree) {
         if(x1 == x2) {
 
-            if(y2 == y1 + checkStep) return true;
+            if(y2 == y1 + checkStep) {
+                return true;
+            }
 
-            if(this->firstMove && (y2 == y1 + checkStep * 2) &&
-               f.get(x1, y1 + checkStep).IsEmpty()) return true;
+            if(
+                this->firstMove 
+                && (y2 == y1 + checkStep * 2) 
+                && f.get(x1, y1 + checkStep).IsEmpty()
+            ) {
+                   return true;
+            }
 
         } else {
             if(enPassantCheck == y1 &&
@@ -82,13 +89,17 @@ bool Pawn::ValidateMove(int x1, int y1,
                 src = dst - src;
 
                 if(this->color == Color::WHITE) {
-                    if(std::strcmp(enName, "BP") != 0) return false;
+                    if(std::strcmp(enName, "BP") != 0) {
+                        return false;
+                    }
                     if(src.y == -2 && src.x == 0) {
                         enPassant->SetEmpty();
                         return true;
                     }
                 } else {
-                    if(std::strcmp(enName, "WP") != 0) return false;
+                    if(std::strcmp(enName, "WP") != 0) {
+                        return false;
+                    }
                     if(src.y == 2 && src.x == 0) {
                         enPassant->SetEmpty();
                         return true;
@@ -100,12 +111,13 @@ bool Pawn::ValidateMove(int x1, int y1,
 
     } else {
         // Then attack
-        if( y2 == y1 + checkStep &&
-           (x2 == x1 + checkStep || x2 == x1 - checkStep) &&
-            enemyCol != this->color) {
+        if( 
+            y2 == y1 + checkStep 
+            && (x2 == x1 + checkStep || x2 == x1 - checkStep) 
+            && enemyCol != this->color
+        ) {
                 return true;
         }
-
     }
     return false;
 }

@@ -10,7 +10,9 @@ static char intToChar(int val, std::string dict, char def = '0')
 static int charToInt(char val, std::string dict, int def = -1)
 {
     for(size_t i = 0; i < dict.size(); ++i)
-        if(val == dict[i]) return i;
+        if(val == dict[i]) {
+            return i;
+        }
 
     return def;
 }
@@ -23,16 +25,17 @@ std::string Move::to_string() const
 {
     std::string str;
 
-    str += intToChar(this->from.x, letters);
+    //насчет этого не уверен, но по идее покрасивше
+    str += intToChar(this->from.x, letters)
+            +intToChar(this->from.y, numbersRev)
+            +intToChar(this->to.x, letters)
+            +intToChar(this->to.y, numbersRev);
 
-    str += intToChar(this->from.y, numbersRev);
-
-    str += intToChar(this->to.x, letters);
-
-    str += intToChar(this->to.y, numbersRev);
-
-    if(promotion != '\0') str += promotion;
-    else str += ' ';
+    if(promotion != '\0') {
+        str += promotion;
+    } else {
+        str += ' ';
+    }
 
     return str;
 }
