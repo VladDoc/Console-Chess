@@ -7,8 +7,6 @@
 #include <sstream>
 #include <fstream>
 
-#include <mutex>
-#include <condition_variable>
 #include <atomic>
 
 #ifdef DEBUG
@@ -20,13 +18,12 @@ static std::ofstream out("out.txt");
 
 static std::ofstream err("err.txt");
 #endif // DEBUG
-static std::mutex moveMtx;
 
 static Move lastMove;
 
 static std::atomic<bool> moveRead{false};
 
-static bool checkMate = false;
+static std::atomic<bool> checkMate{false};
 
 static TinyProcessLib::Process stockfish{
         "stockfish_20011801_x64.exe", "",
@@ -34,6 +31,13 @@ static TinyProcessLib::Process stockfish{
             // todo read stdout
 
             std::string input(bytes);
+
+            size_t mate = input.find("mate 1");
+
+            if(mate != std::string::npos)
+            {
+                checkMate = true;
+            }
 
             size_t data_start = input.find("bestmove");
 
@@ -56,21 +60,19 @@ static TinyProcessLib::Process stockfish{
                 out << move << " ";
                 #endif // DEBUG
 
-                {
-                    const std::lock_guard<std::mutex> lock(moveMtx);
 
-                    lastMove.from_string(move);
-                    #ifdef DEBUG
-                    out << lastMove.to_string() << " ";
-                    out << lastMove.from.x << " "
-                        << lastMove.from.y << " "
-                        << lastMove.to.x << " "
-                        << lastMove.to.y << " "
-                        << lastMove.promotion << " ";
+                lastMove.from_string(move);
+                #ifdef DEBUG
+                out << lastMove.to_string() << " ";
+                out << lastMove.from.x << " "
+                    << lastMove.from.y << " "
+                    << lastMove.to.x << " "
+                    << lastMove.to.y << " "
+                    << lastMove.promotion << " ";
 
-                    #endif // DEBUG
-                    moveRead = true;
-                }
+                #endif // DEBUG
+                moveRead = true;
+
                 #ifdef DEBUG
                 out << "\n</ReadStdout>\n";
                 #endif // DEBUG
@@ -131,31 +133,27 @@ Move StockFish::GenMove(const std::vector<Move>& moves)
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1010));
 
-    {
-        const std::lock_guard<std::mutex> lock(moveMtx);
-
-        if(moveRead) {
-            #ifdef DEBUG
-            out << "\n<GenMove>\n";
-            out << lastMove.to_string();
-            out << lastMove.from.x << " "
-                << lastMove.from.y << " "
-                << lastMove.to.x << " "
-                << lastMove.to.y << " "
-                << lastMove.promotion << " ";
-            out << "\n</GenMove>\n";
-            #endif // DEBUG
-            moveRead = false;
-            return lastMove;
-        } else {
-            return {};
-        }
+    if(moveRead) {
+        #ifdef DEBUG
+        out << "\n<GenMove>\n";
+        out << lastMove.to_string();
+        out << lastMove.from.x << " "
+            << lastMove.from.y << " "
+            << lastMove.to.x << " "
+            << lastMove.to.y << " "
+            << lastMove.promotion << " ";
+        out << "\n</GenMove>\n";
+        #endif // DEBUG
+        moveRead = false;
+        return lastMove;
+    } else {
+        return {};
     }
 }
 
-bool StockFish::CheckMate(const std::vector<Move>& moves)
+bool StockFish::CheckMate()
 {
-    // TODO: Make engine check for a checkmate or a stallmate
+    return checkMate;
 }
 
 int StockFish::Close()

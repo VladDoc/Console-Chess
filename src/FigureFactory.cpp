@@ -20,7 +20,7 @@ std::unique_ptr<Figure> FigureFactory::create(const char* name, int x, int y)
         return std::make_unique<Pawn>(Pawn{});
     }
 
-    switch(name[1]) {
+    switch(std::toupper(name[1])) {
         case 'P':
             return std::make_unique<Pawn>(Pawn{x, y, color});
         break;

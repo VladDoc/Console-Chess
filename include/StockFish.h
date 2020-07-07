@@ -12,7 +12,7 @@ class StockFish
 
         static Move GenMove(const std::vector<Move>& moves);
 
-        static bool CheckMate(const std::vector<Move>& moves);
+        static bool CheckMate();
 
         static int Close();
 

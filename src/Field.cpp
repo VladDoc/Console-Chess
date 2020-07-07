@@ -190,6 +190,8 @@ void Field::Update(const UpdateData&)
 
             Vector2D<int> src;
             Vector2D<int> dst;
+            char promote = '\0';
+
 
             if(!againstAI || !currentMove) {
                 std::cout << "src: ";
@@ -227,6 +229,7 @@ void Field::Update(const UpdateData&)
                 } else {
                     src = move.from;
                     dst = move.to;
+                    promote = move.promotion;
                 }
             }
 
@@ -252,10 +255,19 @@ void Field::Update(const UpdateData&)
                 continue;
             }
 
+            if(promote != '\0') {
+                std::string fig = piece->IsWhite() ? "W" : "B";
+                fig += promote;
+                this->set(dst.x, dst.y,
+                          FigureFactory::create(fig.c_str(), dst.x, dst.y));
+            } else if(promotionFlag) {
+                promote = this->Promote(dst.x, dst.y);
+            }
+
             if(currentMove) {
                 if(this->KingInDanger(*whiteKing)) {
                     dynamic_cast<King*>(whiteKing)->setThreatened(true);
-                    if(CheckMate(*whiteKing)) {
+                    if(CheckMate(*whiteKing) || checkMateCounter == 5) {
                         std::cout << "Checkmate. Black won!\n";
                         this->done = true;
                         UtilityBS::Pause();
@@ -273,8 +285,8 @@ void Field::Update(const UpdateData&)
             } else {
                 if(this->KingInDanger(*blackKing)) {
                 dynamic_cast<King*>(blackKing)->setThreatened(true);
-                    if(CheckMate(*blackKing) && checkMateCounter == 3) {
-                        std::cout << "Checkmate. Black won!\n";
+                    if(CheckMate(*blackKing) || checkMateCounter == 5) {
+                        std::cout << "Checkmate. White won!\n";
                         this->done = true;
                         UtilityBS::Pause();
                         return;
@@ -292,12 +304,6 @@ void Field::Update(const UpdateData&)
 
             if(wasntEmpty && wasntSameColor) {
                 currentMove ? ++capturedBlack : ++capturedWhite;
-            }
-
-            char promote = '\0';
-
-            if(promotionFlag) {
-                promote = this->Promote(dst.x, dst.y);
             }
 
 
@@ -486,22 +492,24 @@ void Field::Tests()
 
 bool Field::CheckMate(const Figure& king) const
 {
-    Color color = king.IsWhite() ? Color::BLACK : Color::WHITE;
-    Vector2D<int> dst;
-    king.GetCoords(dst.x, dst.y);
+//    Color color = king.IsWhite() ? Color::BLACK : Color::WHITE;
+//    Vector2D<int> dst;
+//    king.GetCoords(dst.x, dst.y);
+//
+//    bool isAlive = true;
+//
+//    for(int i = -1; dst.y + i < 8; ++i) {
+//        for(int j = -1; dst.x + j < 8; ++j) {
+//            if(j == 0 && i == 0) continue;
+//            if(dst.x - j < 0 || dst.y - i < 0) continue;
+//            if(king.ValidateMove(dst.x, dst.y, dst.x + j, dst.y + i, *this))
+//              isAlive &= !KingInDanger(color, {dst.x + j, dst.y + i});
+//        }
+//    }
+//
+//    return !isAlive;
 
-    bool isAlive = true;
-
-    for(int i = -1; dst.y + i < 8; ++i) {
-        for(int j = -1; dst.x + j < 8; ++j) {
-            if(j == 0 && i == 0) continue;
-            if(dst.x - j < 0 || dst.y - i < 0) continue;
-            if(king.ValidateMove(dst.x, dst.y, dst.x + j, dst.y + i, *this))
-              isAlive &= !KingInDanger(color, {dst.x + j, dst.y + i});
-        }
-    }
-
-    return !isAlive;
+     return StockFish::CheckMate();
 }
 
 bool Field::KingInDanger(Color color, const Vector2D<int>& dst) const
