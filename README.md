@@ -24,3 +24,6 @@ Can be compiled with any `C++14` and up compliant compiler
   ## Editing project
   - Create new branch with ```git checkout -b new_feature```, edit files and push them into repo
   - Edits in master will be removed
+  
+  ## Useful aliases
+  ```alias.new=!git checkout master && git pull --ff-only origin master && git checkout -b```
