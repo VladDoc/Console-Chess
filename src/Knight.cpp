@@ -20,10 +20,10 @@ Knight::Knight(int x, int y, bool col)
     if(col) {
         this->name = "WN";
         this->color = Color::WHITE;
-    } else {
-        this->name = "BN";
-        this->color = Color::BLACK;
     }
+    
+    this->name = "BN";
+    this->color = Color::BLACK;
 }
 
 bool Knight::ValidateMove(int x1, int y1,

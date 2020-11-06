@@ -22,7 +22,10 @@ class Game : public FrameWork
 
     virtual void Update() override
     {
-        if(clrscreen) UtilityBS::ClearScreen();
+        if(clrscreen) {
+            UtilityBS::ClearScreen();
+        }
+        
         field->Draw(data);
         field->Update(data);
 

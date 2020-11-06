@@ -21,10 +21,11 @@ bool Figure::IsBlack() const
 
 bool Figure::IsEmpty() const
 {
-    return (this->name == "  ") ||
-           this->color == Color::UNKNOWN ||
-           this->x_ == -1 ||
-           this->y_ == -1;
+    return 
+        (this->name == "  ") 
+        || this->color == Color::UNKNOWN 
+        || this->x_ == -1 
+        || this->y_ == -1;
 }
 
 void Figure::SetEmpty()
@@ -43,7 +44,10 @@ void Figure::SetCoords(int x, int y)
 
 bool Figure::Move(int x, int y, Field& f)
 {
-    if(x == this->x_ && y == this->y_) return false;
+    if(x == this->x_ && y == this->y_) {
+        return false;
+    }
+        
     if(ValidateMove(this->x_, this->y_, x, y, f))
     {
         f.get(x, y).SetEmpty();

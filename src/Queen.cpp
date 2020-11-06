@@ -32,8 +32,8 @@ bool Queen::ValidateMove(int x1, int y1,
     bool empty = f.get(x2, y2).IsEmpty();
     bool diff_color = f.get(x2, y2).GetColor() != this->GetColor();
 
-    if((empty || diff_color)) {
-        if(f.IsPathClear({x1, y1}, {x2, y2})) return true;
+    if((empty || diff_color) && f.IsPathClear({x1, y1}, {x2, y2})) {
+        return true;
     }
     return false;
 }
