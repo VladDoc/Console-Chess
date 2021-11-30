@@ -131,6 +131,7 @@ Move StockFish::GenMove(const std::vector<Move>& moves)
     out << "\n</DEBUG>\n";
     #endif // DEBUG
 
+    // await the subprocess to finish
     std::this_thread::sleep_for(std::chrono::milliseconds(1010));
 
     if(moveRead) {
